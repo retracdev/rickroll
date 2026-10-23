@@ -93,7 +93,16 @@ body {
   display: block;
 }
 
+/* Transparent layer over the iframe: swallows clicks/hovers so the video can't be
+   paused (a click on the YouTube player toggles pause even with controls hidden). */
+.shield {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
 .unmute {
+  z-index: 2;
   position: absolute;
   left: 50%;
   bottom: 8%;
