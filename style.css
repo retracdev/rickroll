@@ -219,6 +219,24 @@ body {
   object-fit: cover;
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
 }
+/* Right-hand card: same look as the profile card, with a big number filling the rest. */
+.counter-card { display: flex; flex-direction: column; }
+.counter-card h3 { margin-top: 0; }
+.counter-value {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding-top: 22px;
+  font-size: clamp(64px, 11vw, 112px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #fff, #8fb0ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
 .profile-card h3 { margin-top: 18px; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
 .profile-desc { margin-top: 8px; font-size: 15px; line-height: 1.5; color: rgba(255, 255, 255, 0.65); }
 
