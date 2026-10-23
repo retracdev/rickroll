@@ -10,11 +10,11 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 2. Clicking the checkbox shows a brief spinner, then a green check, and enables the blue "Verify" button. This is a fake check; both clicks are the user gestures that let the video play with sound.
 3. Clicking Verify starts the ad-free YouTube player with autoplay, filling the window. Fullscreen is intentionally NOT requested (it caused the video to start muted); revisit only if sound is solved another way.
 
-4. ~2.5s after the video starts playing (`REVEAL_AFTER_MS`), the `.player` gets `.revealed`: the video smoothly shrinks to a 16:9 card at the top, the page becomes scrollable, and the `.after` section below shows "You've been Rickrolled!". `.after` is the placeholder for future stats, GitHub link, About Me, etc.
+4. ~2.5s after the video starts playing (`REVEAL_AFTER_MS`), the `.player` gets `.revealed`: the video smoothly shrinks to a 16:9 card at the top, the page becomes scrollable, and the `.after` section below shows "You've been Rickrolled!". `.after` holds a two-column `.after-grid`: the left column is the profile card ("You've been rickrolled by Retrac!", avatar `assets/profile.jpg`, description, and "GitHub Repo" / "GitHub Profile" link cards); the right column is reserved for a future card (stats, About Me, etc.).
 
 ## Files
 - `index.html`, `style.css`, `script.js`: the whole site.
-- `assets/`: images (`rickroll.png` transparent, `rickroll.jpeg`).
+- `assets/`: images (`rickroll.png` transparent, `rickroll.jpeg`, `profile.jpg` = the owner's avatar).
 - `.nojekyll`: keeps GitHub Pages from running Jekyll.
 
 ## Conventions
