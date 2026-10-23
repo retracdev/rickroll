@@ -12,6 +12,8 @@ const REVEAL_AFTER_MS = 700;
 const MAYHEM_START_MS = 3000;
 const MAYHEM_END_MS = 6600;
 const MAYHEM_SPAWN_EVERY_MS = 130;
+// After the falling stops (MAYHEM_END_MS), the remaining pile falls through the screen this much later.
+const PILE_RELEASE_AFTER_MS = 2770;
 const FALL_IMAGES = [
   "assets/rickroll.png",
   "assets/rickroll.jpeg",
@@ -251,6 +253,7 @@ function finalize(p, base) {
   el.style.bottom = `${window.innerHeight - (p.y + p.h / 2)}px`;
   el.style[side] = `${p.x - p.w / 2}px`;
   el.style.transform = `rotate(${p.angle}deg)`;
+  el.dataset.settled = "1";
 
   const top = base + p.hh * 2;
   const from = Math.max(0, Math.floor((p.x - p.w * 0.4) / BUCKET_PX));
@@ -324,7 +327,30 @@ function tick(now) {
   else looping = false;
 }
 
+// Everything still piled up drops through the bottom of the screen and disappears.
+function releasePile() {
+  // Anything still in the air just keeps falling through.
+  for (const p of flying) p.state = "ghost";
+  heaps.left.length = 0;
+  heaps.right.length = 0;
+
+  const vh = window.innerHeight;
+  pile.querySelectorAll(".fall-item[data-settled]").forEach((el) => {
+    if (reducedMotion) { el.remove(); return; }
+    const angle = parseFloat(/rotate\(([-\d.]+)deg\)/.exec(el.style.transform)?.[1]) || 0;
+    const anim = el.animate(
+      [
+        { transform: `translateY(0) rotate(${angle}deg)` },
+        { transform: `translateY(${vh}px) rotate(${angle + rand(-60, 60)}deg)` },
+      ],
+      { duration: rand(800, 1300), delay: rand(0, 350), easing: "cubic-bezier(0.55, 0, 1, 0.45)", fill: "forwards" }
+    );
+    anim.onfinish = () => el.remove();
+  });
+}
+
 function scheduleMayhem() {
+  setTimeout(releasePile, MAYHEM_END_MS + PILE_RELEASE_AFTER_MS);
   setTimeout(() => {
     const started = performance.now();
     let flip = false;
