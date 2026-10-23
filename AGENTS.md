@@ -10,6 +10,8 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 2. Clicking the checkbox shows a brief spinner, then a green check, and enables the blue "Verify" button. This is a fake check; both clicks are the user gestures that let the video play with sound.
 3. Clicking Verify starts the ad-free YouTube player with autoplay, filling the window. Fullscreen is intentionally NOT requested (it caused the video to start muted); revisit only if sound is solved another way.
 
+4. ~4.5s after the video starts playing (`REVEAL_AFTER_MS`), the `.player` gets `.revealed`: the video smoothly shrinks to a 16:9 card at the top, the page becomes scrollable, and the `.after` section below shows "You've been Rickrolled!". `.after` is the placeholder for future stats, GitHub link, About Me, etc.
+
 ## Files
 - `index.html`, `style.css`, `script.js`: the whole site.
 - `assets/`: images (`rickroll.png` transparent, `rickroll.jpeg`).
@@ -25,7 +27,7 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 ## Rules
 - **Do not edit `README.md`.** The owner maintains it.
 - `CLAUDE.md` only contains `@AGENTS.md`. Put all guidance here.
-- Do not commit, push, or open PRs/comments until the owner asks.
+- **After finishing ANY request from the owner, always commit and open a PR without being asked.** Work on a fresh branch cut from the latest `origin/main` (never commit directly to `main`), push it, and open a PR into `main`. Only add PR comments if the owner asks.
 
 ## Planned (not yet built)
 - Rickroll counter (analytics-backed; every visit counts, even from the same browser).
