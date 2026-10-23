@@ -1,0 +1,106 @@
+:root {
+  --blue: #2f6bff;
+  --blue-dark: #1f4fd1;
+  --bg: #0b0d14;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: #fff;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  overflow: hidden;
+}
+
+body {
+  background:
+    radial-gradient(60% 60% at 50% 40%, rgba(47, 107, 255, 0.18), transparent 70%),
+    var(--bg);
+}
+
+.stage {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.stage > * { grid-area: 1 / 1; }
+.stage.leaving { opacity: 0; transform: scale(0.96); pointer-events: none; }
+
+/* ---- Loader ---- */
+.loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  transition: opacity 0.4s ease;
+}
+.loader.done { opacity: 0; pointer-events: none; }
+
+.spinner {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.12);
+  border-top-color: var(--blue);
+  animation: spin 0.9s linear infinite;
+}
+.loader-text {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+/* ---- Continue button ---- */
+.continue {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 34px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--blue), var(--blue-dark));
+  color: #fff;
+  font: 700 20px/1 "Inter", system-ui, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(47, 107, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  animation: rise 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.continue[hidden] { display: none; }
+.continue:hover { transform: translateY(-2px) scale(1.04); box-shadow: 0 14px 36px rgba(47, 107, 255, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+.continue:active { transform: scale(0.97); }
+.continue:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+.continue .arrow { animation: nudge 1.1s ease-in-out infinite; }
+
+/* ---- Player ---- */
+.player {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  animation: fade-in 0.6s ease both;
+}
+.player[hidden] { display: none; }
+.player iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 50% { opacity: 0.35; } }
+@keyframes nudge { 50% { transform: translateX(6px); } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes rise {
+  from { opacity: 0; transform: translateY(16px) scale(0.92); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
