@@ -8,7 +8,7 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 ## Flow
 1. Page loads and shows a spinner for ~1.8s (so the user has time to interact).
 2. A blue "Continue" button with an arrow appears.
-3. Clicking it requests fullscreen (needs a user gesture) and loads the ad-free YouTube embed in an iframe with autoplay.
+3. Clicking it requests fullscreen (needs a user gesture) and starts the ad-free YouTube player with autoplay.
 
 ## Files
 - `index.html`, `style.css`, `script.js`: the whole site.
@@ -17,7 +17,7 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 
 ## Conventions
 - Font: Inter.
-- Embed: load `https://www.youtube-nocookie.com/embed/<id>` directly with `autoplay=1&loop=1&playlist=<id>&iv_load_policy=3&disablekb=1`. Do NOT use `tube.rvere.com/embed`: it is a click-to-play facade (cross-origin, cannot be auto-clicked), so it never autoplays. Do not use standard youtube.com embeds (ads).
+- Embed: use the YouTube IFrame API with `host: "https://www.youtube-nocookie.com"` (ad-free), created inside the Continue click. Playback starts via `playVideo()`; if sound-on autoplay is blocked, fall back to muted autoplay plus a "Tap to unmute" button. Do NOT use `tube.rvere.com/embed` (click-to-play facade inside a cross-origin iframe, cannot autoplay) or standard youtube.com embeds (ads).
 - Keep animations, and respect `prefers-reduced-motion`.
 - Use relative asset paths (Pages serves from a subpath).
 
