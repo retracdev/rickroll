@@ -1,6 +1,11 @@
-// Ad-free embed. autoplay=1 is added so it starts as soon as the iframe loads.
+// tube.rvere.com/embed is only a click-to-play facade around youtube-nocookie.com,
+// and the click lands inside a cross-origin iframe we can't trigger. So we load the
+// same youtube-nocookie player it would (same params), directly, with autoplay.
+// YouTube only honors loop=1 when playlist is set to the same video ID.
+const VIDEO_ID = "dQw4w9WgXcQ";
 const EMBED_URL =
-  "https://tube.rvere.com/embed?v=dQw4w9WgXcQ&loop=1&iv_load_policy=3&disablekb=1&autoplay=1";
+  `https://www.youtube-nocookie.com/embed/${VIDEO_ID}` +
+  `?autoplay=1&loop=1&playlist=${VIDEO_ID}&iv_load_policy=3&disablekb=1&rel=0&playsinline=1`;
 
 const LOADER_MS = 1800;
 
