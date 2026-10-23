@@ -37,9 +37,20 @@
   </main>
 
   <div id="player" class="player" hidden>
-    <div id="yt"></div>
-    <div class="shield"></div>
-    <button id="unmute" class="unmute" type="button" hidden>🔊 Tap to unmute</button>
+    <div class="video-wrap">
+      <div class="video-frame">
+        <div id="yt"></div>
+        <div class="shield"></div>
+        <button id="unmute" class="unmute" type="button" hidden>🔊 Tap to unmute</button>
+      </div>
+    </div>
+
+    <!-- Revealed below the video once it shrinks. Future home of stats, GitHub link, etc. -->
+    <section class="after">
+      <div class="after-inner">
+        <h2>You've been Rickrolled!</h2>
+      </div>
+    </section>
   </div>
 
   <script src="script.js"></script>

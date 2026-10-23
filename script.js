@@ -3,6 +3,8 @@ const VIDEO_ID = "dQw4w9WgXcQ";
 const VERIFY_MS = 1100;
 // How long to wait for playback to start before falling back to muted autoplay.
 const AUTOPLAY_CHECK_MS = 1500;
+// How long the video plays fullscreen-sized before shrinking to reveal the page below.
+const REVEAL_AFTER_MS = 4500;
 
 const stage = document.getElementById("stage");
 const check = document.getElementById("check");
@@ -92,7 +94,15 @@ function onReady(event) {
   }, AUTOPLAY_CHECK_MS);
 }
 
+let revealScheduled = false;
+
 function onStateChange(event) {
+  // Once the video actually starts playing, wait a few seconds and then shrink it.
+  if (event.data === YT.PlayerState.PLAYING && !revealScheduled) {
+    revealScheduled = true;
+    setTimeout(() => player.classList.add("revealed"), REVEAL_AFTER_MS);
+  }
+
   // Belt and braces for looping.
   if (event.data === YT.PlayerState.ENDED) {
     event.target.seekTo(0);
