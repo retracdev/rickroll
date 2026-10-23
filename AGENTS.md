@@ -17,7 +17,7 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 
 ## Conventions
 - Font: Inter.
-- Embed URL: `https://tube.rvere.com/embed?v=dQw4w9WgXcQ&loop=1&iv_load_policy=3&disablekb=1` (+ `autoplay=1`). Do not use standard YouTube embeds (ads).
+- Embed: load `https://www.youtube-nocookie.com/embed/<id>` directly with `autoplay=1&loop=1&playlist=<id>&iv_load_policy=3&disablekb=1`. Do NOT use `tube.rvere.com/embed`: it is a click-to-play facade (cross-origin, cannot be auto-clicked), so it never autoplays. Do not use standard youtube.com embeds (ads).
 - Keep animations, and respect `prefers-reduced-motion`.
 - Use relative asset paths (Pages serves from a subpath).
 
