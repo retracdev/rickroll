@@ -50,7 +50,10 @@ function startPlayer() {
       loop: 1,
       playlist: VIDEO_ID, // YouTube only loops when playlist is set
       iv_load_policy: 3,
-      disablekb: 1,
+      controls: 0, // hide the pause / seek / volume bar
+      fs: 0,
+      modestbranding: 1,
+      disablekb: 1, // no keyboard pause/seek
       rel: 0,
       playsinline: 1,
     },
@@ -82,6 +85,10 @@ function onStateChange(event) {
   // Belt and braces for looping.
   if (event.data === YT.PlayerState.ENDED) {
     event.target.seekTo(0);
+    event.target.playVideo();
+  }
+  // Never stay paused (e.g. if something slips past the click shield).
+  if (event.data === YT.PlayerState.PAUSED) {
     event.target.playVideo();
   }
 }
