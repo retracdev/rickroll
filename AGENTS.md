@@ -12,9 +12,12 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 
 4. ~0.7s after the video actually starts playing (timer only starts on the player's PLAYING state) (`REVEAL_AFTER_MS`), the `.player` gets `.revealed`: the video smoothly shrinks to a 16:9 card at the top, the page becomes scrollable, and the `.after` section below shows "You've been Rickrolled!". `.after` holds a two-column `.after-grid`: the left column is the profile card ("You've been rickrolled by Retrac!", avatar `assets/profile.jpg`, description, and "GitHub Repo" / "GitHub Profile" link cards); the right column is the "Rickroll Counter" card (currently a static `0` in `#counter`, to be hooked up to real analytics later; do not add "example" text to the page).
 
+5. "Mayhem": measured from when the video starts playing, photos of Rick fall at the left and right edges from 3.0s to 6.6s (`MAYHEM_START_MS` / `MAYHEM_END_MS` in `script.js`) and stay piled at the bottom of the viewport (a fixed `#pile` overlay with `pointer-events: none`). A per-side heightmap decides where each lands. Images: `assets/rickroll.png`, `assets/rickroll.jpeg`, and three CC-licensed Wikimedia photos in `assets/falling/` (credits in `assets/falling/CREDITS.md`; keep it updated when adding images). Reduced-motion users get the pile without the falling.
+
 ## Files
 - `index.html`, `style.css`, `script.js`: the whole site.
 - `assets/`: images (`rickroll.png` transparent, `rickroll.jpeg`, `profile.jpg` = the owner's avatar).
+- `assets/falling/`: photos for the falling effect (+ `CREDITS.md`).
 - `.nojekyll`: keeps GitHub Pages from running Jekyll.
 
 ## Conventions
