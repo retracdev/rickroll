@@ -3,8 +3,9 @@ const VIDEO_ID = "dQw4w9WgXcQ";
 const VERIFY_MS = 1100;
 // How long to wait for playback to start before falling back to muted autoplay.
 const AUTOPLAY_CHECK_MS = 1500;
-// How long the video plays fullscreen-sized before shrinking to reveal the page below.
-const REVEAL_AFTER_MS = 2500;
+// How long after the video actually starts playing (the timer doesn't start before that)
+// it shrinks to reveal the page below.
+const REVEAL_AFTER_MS = 700;
 
 const stage = document.getElementById("stage");
 const check = document.getElementById("check");
