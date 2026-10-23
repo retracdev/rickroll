@@ -176,10 +176,13 @@ body {
 }
 
 .after {
-  min-height: 80vh;
+  /* Tall enough to keep the page scrollable (so the video can scroll away), but the
+     content sits at the top, right under the video, not centered in the tall box. */
+  min-height: 100vh;
   display: grid;
-  place-items: center;
-  padding: 40px 20px 80px;
+  align-content: start;
+  justify-items: center;
+  padding: 0 20px 80px;
   text-align: center;
   color: #fff;
 }
