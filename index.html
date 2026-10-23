@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Loading…</title>
-  <meta name="description" content="Just a quick loading screen. Nothing to see here.">
+  <title>Security check</title>
+  <meta name="description" content="A quick security check.">
   <link rel="icon" href="assets/rickroll.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,18 +12,28 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main id="stage" class="stage" aria-live="polite">
-    <div id="loader" class="loader" role="status" aria-label="Loading">
-      <div class="spinner"></div>
-      <p class="loader-text">Loading…</p>
-    </div>
+  <main id="stage" class="stage">
+    <section class="card" aria-labelledby="card-title">
+      <h1 id="card-title">Quick security check</h1>
+      <p class="sub">Just confirming you're a real human. It only takes a second.</p>
 
-    <button id="continue" class="continue" type="button" hidden>
-      <span>Continue</span>
-      <svg class="arrow" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-        <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
+      <button id="check" class="check" type="button" role="checkbox" aria-checked="false">
+        <span class="box">
+          <span class="box-spin"></span>
+          <svg class="tick" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span id="check-label" class="check-label">I'm not a robot</span>
+      </button>
+
+      <button id="verify" class="verify" type="button" disabled>
+        <span>Verify</span>
+        <svg class="arrow" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </section>
   </main>
 
   <div id="player" class="player" hidden>
