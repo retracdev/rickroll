@@ -140,75 +140,188 @@ function showUnmute(yt) {
 }
 
 // ---- Falling photos -------------------------------------------------------------
+// A small loose physics sim: each photo tumbles and flutters down (gravity + air drag +
+// a little sideways sway), bounces and flops flat when it lands on the pile. Once the pile
+// is a few rows tall, later photos pass straight through it and fall off the screen.
 const pile = document.getElementById("pile");
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const FALL_GRAVITY = 2600; // px/s^2
-const BUCKET_PX = 8;
 
-// Preload so we know each image's aspect ratio before it falls.
-const fallImages = FALL_IMAGES.map((src) => {
-  const img = new Image();
+const BUCKET_PX = 8;
+const PILE_MAX_PX = 190; // roughly 2-3 rows of photos per side
+const MIN_BOUNCE_SPEED = 240; // px/s; slower than this and the photo settles
+
+const FALL_IMAGES_LOADED = FALL_IMAGES.map((src) => {
+  const img = new Image(); // preload so we know each aspect ratio before it falls
   img.src = src;
   return img;
 });
 
-// Per-side "heightmap" of the pile, in BUCKET_PX-wide columns across the side zone.
-// Each landing photo rests on the tallest column it covers, then raises those columns.
+// Per-side heightmap of the settled pile, in BUCKET_PX columns measured from the side's edge.
 const heaps = { left: [], right: [] };
+const flying = new Set();
+let lastFrame = 0;
+let looping = false;
+
+const rand = (min, max) => min + Math.random() * (max - min);
+const deg = (d) => (d * Math.PI) / 180;
 
 function sideZoneWidth() {
   return Math.min(320, Math.max(120, window.innerWidth * 0.2));
 }
 
+function pileHeightAt(side, from, to) {
+  let h = 0;
+  for (let i = from; i < to; i++) h = Math.max(h, heaps[side][i] || 0);
+  return h;
+}
+
 function dropPhoto(side) {
-  const img = fallImages[Math.floor(Math.random() * fallImages.length)];
+  const img = FALL_IMAGES_LOADED[Math.floor(Math.random() * FALL_IMAGES_LOADED.length)];
   if (!img.naturalWidth) return; // not loaded; skip rather than guess its shape
 
+  const w = rand(70, 130);
+  const h = Math.min(170, w * (img.naturalHeight / img.naturalWidth));
   const zone = sideZoneWidth();
-  const width = 70 + Math.random() * 60;
-  const height = Math.min(170, width * (img.naturalHeight / img.naturalWidth));
-  const zoneX = Math.random() * Math.max(0, zone - width);
-  // Anchor to the near screen edge so the pile stays put if the window is resized.
-  const edge = side === "left" ? zoneX : zone - zoneX - width;
-
-  // Footprint a bit smaller than the box so rotated photos interlock instead of floating.
-  const heap = heaps[side];
-  const from = Math.floor(zoneX / BUCKET_PX);
-  const to = Math.ceil((zoneX + width) / BUCKET_PX);
-  let base = 0;
-  for (let i = from; i < to; i++) base = Math.max(base, heap[i] || 0);
-  const top = base + height * 0.7;
-  if (top > window.innerHeight * 0.75) return; // pile is tall enough; keep it on screen
-  for (let i = from; i < to; i++) heap[i] = top;
 
   const el = document.createElement("img");
   el.className = "fall-item" + (img.src.endsWith(".png") ? "" : " photo");
   el.src = img.src;
   el.alt = "";
-  el.style.width = `${width}px`;
-  el.style.height = `${height}px`;
-  el.style[side] = `${edge}px`;
-  el.style.bottom = `${base}px`;
+  el.style.width = `${w}px`;
+  el.style.height = `${h}px`;
+  el.style.top = "0";
+  el.style[side] = "0";
 
-  const finalAngle = (Math.random() - 0.5) * 50;
-  const finalTransform = `rotate(${finalAngle}deg)`;
-  el.style.transform = finalTransform;
+  const p = {
+    el, side, w, h,
+    hh: h * 0.4, // effective half-height for landing (rotated photos are shorter than their box)
+    x: rand(w * 0.4, zone - w * 0.4), // centre, measured from this side's screen edge
+    y: -h,
+    vx: rand(-70, 70),
+    vy: rand(0, 160),
+    angle: rand(-90, 90),
+    omega: rand(-260, 260), // deg/s
+    gravity: rand(1500, 2300),
+    swayAmp: rand(250, 800),
+    swayFreq: rand(2, 5),
+    swayPhase: rand(0, Math.PI * 2),
+    age: 0,
+    state: "falling", // falling | ghost | settling
+    flop: 0,
+    target: 0,
+  };
+
   pile.appendChild(el);
 
-  if (reducedMotion) return;
+  if (reducedMotion) {
+    // No animation: just place it on the pile (or skip it if the pile is already tall).
+    const base = baseUnder(p);
+    if (base >= PILE_MAX_PX) { el.remove(); return; }
+    p.y = window.innerHeight - base - p.hh;
+    p.angle = rand(-18, 18);
+    finalize(p, base);
+    return;
+  }
 
-  // Start just above the top of the screen, spinning, and accelerate down like gravity.
-  const dist = window.innerHeight - base;
-  const seconds = Math.sqrt((2 * dist) / FALL_GRAVITY);
-  const spin = (Math.random() < 0.5 ? -1 : 1) * (120 + Math.random() * 240);
-  const fall = el.animate(
-    [
-      { transform: `translateY(${-dist}px) rotate(${finalAngle - spin}deg)` },
-      { transform: `translateY(0) rotate(${finalAngle}deg)` },
-    ],
-    { duration: seconds * 1000, easing: "cubic-bezier(0.55, 0, 1, 0.45)" }
-  );
-  fall.onfinish = () => { el.style.transform = finalTransform; };
+  render(p);
+  flying.add(p);
+  if (!looping) {
+    looping = true;
+    lastFrame = performance.now();
+    requestAnimationFrame(tick);
+  }
+}
+
+function baseUnder(p) {
+  const from = Math.max(0, Math.floor((p.x - p.w * 0.4) / BUCKET_PX));
+  const to = Math.ceil((p.x + p.w * 0.4) / BUCKET_PX);
+  return pileHeightAt(p.side, from, to);
+}
+
+function render(p) {
+  const tx = p.side === "left" ? p.x - p.w / 2 : -(p.x - p.w / 2);
+  p.el.style.transform = `translate(${tx}px, ${p.y - p.h / 2}px) rotate(${p.angle}deg)`;
+}
+
+// Photo is at rest: anchor it to the bottom/edge so it stays put on resize, and
+// raise the pile under it.
+function finalize(p, base) {
+  const { el, side } = p;
+  el.style.top = "auto";
+  el.style.bottom = `${window.innerHeight - (p.y + p.h / 2)}px`;
+  el.style[side] = `${p.x - p.w / 2}px`;
+  el.style.transform = `rotate(${p.angle}deg)`;
+
+  const top = base + p.hh * 2;
+  const from = Math.max(0, Math.floor((p.x - p.w * 0.4) / BUCKET_PX));
+  const to = Math.ceil((p.x + p.w * 0.4) / BUCKET_PX);
+  for (let i = from; i < to; i++) heaps[side][i] = Math.max(heaps[side][i] || 0, top);
+}
+
+function tick(now) {
+  const dt = Math.min(0.033, (now - lastFrame) / 1000);
+  lastFrame = now;
+  const vh = window.innerHeight;
+
+  for (const p of flying) {
+    p.age += dt;
+
+    if (p.state === "settling") {
+      // Flop flat: ease the angle toward a gentle resting tilt, then lock in place.
+      p.flop += dt;
+      p.angle += (p.target - p.angle) * Math.min(1, dt * 14);
+      render(p);
+      if (p.flop > 0.3) {
+        p.angle = p.target;
+        finalize(p, p.base);
+        flying.delete(p);
+      }
+      continue;
+    }
+
+    // Gravity, air drag (so they float down instead of plummeting), and a flutter sway.
+    p.vy += p.gravity * dt;
+    p.vy -= p.vy * Math.abs(p.vy) * 0.0016 * dt;
+    p.vx += Math.sin(p.age * p.swayFreq + p.swayPhase) * p.swayAmp * dt;
+    p.vx -= p.vx * 0.6 * dt;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.angle += p.omega * dt;
+    p.omega -= p.omega * 0.25 * dt;
+
+    // Don't wander off the near edge of the screen entirely.
+    if (p.x < p.w * 0.2) { p.x = p.w * 0.2; p.vx = Math.abs(p.vx) * 0.5; }
+
+    if (p.state === "falling" && p.vy > 0) {
+      const base = baseUnder(p);
+      if (p.y + p.hh >= vh - base) {
+        if (base >= PILE_MAX_PX) {
+          p.state = "ghost"; // pile is full: fall right through it
+        } else if (p.vy > MIN_BOUNCE_SPEED) {
+          // Bounce, losing most of the energy and picking up a random tumble.
+          p.y = vh - base - p.hh;
+          p.vy = -p.vy * rand(0.25, 0.45);
+          p.vx = p.vx * 0.5 + rand(-90, 90);
+          p.omega = p.omega * 0.4 + rand(-200, 200);
+        } else {
+          p.y = vh - base - p.hh;
+          p.base = base;
+          p.state = "settling";
+          p.target = Math.round(p.angle / 360) * 360 + rand(-20, 20);
+        }
+      }
+    }
+
+    render(p);
+
+    if (p.state === "ghost" && p.y - p.h > vh) {
+      p.el.remove();
+      flying.delete(p);
+    }
+  }
+
+  if (flying.size) requestAnimationFrame(tick);
+  else looping = false;
 }
 
 function scheduleMayhem() {
