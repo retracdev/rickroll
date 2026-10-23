@@ -8,7 +8,7 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 ## Flow
 1. Page loads and shows a spinner for ~1.8s (so the user has time to interact).
 2. A blue "Continue" button with an arrow appears.
-3. Clicking it requests fullscreen (needs a user gesture) and starts the ad-free YouTube player with autoplay.
+3. Clicking it starts the ad-free YouTube player with autoplay, filling the window. Fullscreen is intentionally NOT requested (it caused the video to start muted); revisit only if sound is solved another way.
 
 ## Files
 - `index.html`, `style.css`, `script.js`: the whole site.

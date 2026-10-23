@@ -19,8 +19,8 @@ const apiReady = new Promise((resolve) => {
   document.head.appendChild(tag);
 });
 
-// Fullscreen needs a user gesture, so show a short "loading" screen,
-// then a button whose click is that gesture.
+// Show a short "loading" screen, then a button whose click is the user gesture
+// that lets the browser play the video with sound.
 setTimeout(() => {
   loader.classList.add("done");
   setTimeout(() => {
@@ -31,14 +31,7 @@ setTimeout(() => {
 }, LOADER_MS);
 
 button.addEventListener("click", () => {
-  // Kick off fullscreen and the player in the same tick as the click, so both
-  // still have the click's user activation.
-  const root = document.documentElement;
-  const request = root.requestFullscreen || root.webkitRequestFullscreen;
-  if (request) {
-    try { Promise.resolve(request.call(root)).catch(() => {}); } catch { /* play windowed */ }
-  }
-
+  // Fullscreen is intentionally not requested: it made the video start muted.
   stage.classList.add("leaving");
   player.hidden = false;
   document.title = "Never Gonna Give You Up";
