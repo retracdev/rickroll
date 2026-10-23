@@ -1,11 +1,13 @@
 const VIDEO_ID = "dQw4w9WgXcQ";
-const LOADER_MS = 1800;
+// How long the fake "verifying" spinner shows after the checkbox click.
+const VERIFY_MS = 1100;
 // How long to wait for playback to start before falling back to muted autoplay.
 const AUTOPLAY_CHECK_MS = 1500;
 
 const stage = document.getElementById("stage");
-const loader = document.getElementById("loader");
-const button = document.getElementById("continue");
+const check = document.getElementById("check");
+const checkLabel = document.getElementById("check-label");
+const verify = document.getElementById("verify");
 const player = document.getElementById("player");
 const unmute = document.getElementById("unmute");
 
@@ -19,18 +21,27 @@ const apiReady = new Promise((resolve) => {
   document.head.appendChild(tag);
 });
 
-// Show a short "loading" screen, then a button whose click is the user gesture
-// that lets the browser play the video with sound.
-setTimeout(() => {
-  loader.classList.add("done");
-  setTimeout(() => {
-    loader.hidden = true;
-    button.hidden = false;
-    button.focus({ preventScroll: true });
-  }, 400);
-}, LOADER_MS);
+// Fake "I'm not a robot" check. Both clicks (checkbox, then Verify) are real user
+// gestures, which is what lets the browser play the video with sound.
+check.addEventListener("click", () => {
+  if (check.classList.contains("verifying") || check.classList.contains("done")) return;
 
-button.addEventListener("click", () => {
+  check.classList.add("verifying");
+  checkLabel.textContent = "Verifying…";
+
+  setTimeout(() => {
+    check.classList.remove("verifying");
+    check.classList.add("done");
+    check.setAttribute("aria-checked", "true");
+    checkLabel.textContent = "You're human!";
+
+    verify.disabled = false;
+    verify.classList.add("ready");
+    verify.focus({ preventScroll: true });
+  }, VERIFY_MS);
+});
+
+verify.addEventListener("click", () => {
   // Fullscreen is intentionally not requested: it made the video start muted.
   stage.classList.add("leaving");
   player.hidden = false;

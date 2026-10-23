@@ -6,9 +6,9 @@ Guidance for any AI agent working in this repo.
 A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build step).
 
 ## Flow
-1. Page loads and shows a spinner for ~1.8s (so the user has time to interact).
-2. A blue "Continue" button with an arrow appears.
-3. Clicking it starts the ad-free YouTube player with autoplay, filling the window. Fullscreen is intentionally NOT requested (it caused the video to start muted); revisit only if sound is solved another way.
+1. Page loads a friendly light "Quick security check" card with an "I'm not a robot" checkbox (no ominous spinner/loading screen).
+2. Clicking the checkbox shows a brief spinner, then a green check, and enables the blue "Verify" button. This is a fake check; both clicks are the user gestures that let the video play with sound.
+3. Clicking Verify starts the ad-free YouTube player with autoplay, filling the window. Fullscreen is intentionally NOT requested (it caused the video to start muted); revisit only if sound is solved another way.
 
 ## Files
 - `index.html`, `style.css`, `script.js`: the whole site.
