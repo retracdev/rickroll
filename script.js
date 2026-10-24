@@ -14,13 +14,17 @@ const MAYHEM_END_MS = 6600;
 const MAYHEM_SPAWN_EVERY_MS = 130;
 // After the falling stops (MAYHEM_END_MS), the remaining pile falls through the screen this much later.
 const PILE_RELEASE_AFTER_MS = 2770;
+
+// This script is shared by every entry page (the root page and variations like /games/),
+// so asset paths are resolved against the site root, not the current page.
+const SITE_ROOT = new URL("./", document.currentScript.src).href;
 const FALL_IMAGES = [
   "assets/rickroll.png",
   "assets/rickroll.jpeg",
   "assets/falling/rick-stage.jpg",
   "assets/falling/rick-2023.jpg",
   "assets/falling/rick-dallas.jpg",
-];
+].map((path) => SITE_ROOT + path);
 
 // Rickroll counter: kept on the free Abacus counter service (https://abacus.jasoncameron.dev),
 // not in this repo, so it survives deploys and changes without a redeploy. Every page load
@@ -28,7 +32,66 @@ const FALL_IMAGES = [
 const COUNTER_HIT_URL = "https://abacus.jasoncameron.dev/hit/retracdev-rickroll/rickrolls";
 const COUNTER_TIMEOUT_MS = 8000;
 
+// The video player, "You've been Rickrolled!" section, falling-photo layer and GitHub icon are
+// the same on every entry page, so they live here instead of being copied into each HTML file.
+// An entry page only needs its own intro screen: an element with id="stage" (faded out on
+// start) and any element with the `data-rickroll-start` attribute (clicking it starts the show).
+document.body.insertAdjacentHTML("beforeend", `
+  <div id="player" class="player" hidden>
+    <div class="video-wrap">
+      <div class="video-frame">
+        <div id="yt"></div>
+        <div class="shield"></div>
+        <button id="unmute" class="unmute" type="button" hidden>🔊 Tap to unmute</button>
+      </div>
+    </div>
+
+    <!-- Revealed below the video once it shrinks. -->
+    <section class="after">
+      <div class="after-inner">
+        <h2>You've been Rickrolled!</h2>
+
+        <div class="after-grid">
+          <article class="profile-card">
+            <img class="avatar" src="${SITE_ROOT}assets/profile.jpg" alt="Retrac's profile picture" width="72" height="72">
+            <h3>You've been rickrolled by Retrac!</h3>
+            <p class="profile-desc">It's okay... It happens to the best of us.</p>
+
+            <div class="links">
+              <a class="link-card" href="https://github.com/retracdev/rickroll" target="_blank" rel="noopener noreferrer">
+                <svg class="gh" viewBox="0 0 24 24" aria-hidden="true"><use href="#github-mark"/></svg>
+                <span>GitHub Repo</span>
+              </a>
+              <a class="link-card" href="https://github.com/retracdev/" target="_blank" rel="noopener noreferrer">
+                <svg class="gh" viewBox="0 0 24 24" aria-hidden="true"><use href="#github-mark"/></svg>
+                <span>GitHub Profile</span>
+              </a>
+            </div>
+          </article>
+
+          <article class="profile-card counter-card">
+            <h3>Rickroll Counter</h3>
+            <p class="profile-desc">Here's how many times people have been rickrolled on this site.</p>
+            <div id="counter" class="counter-value">0</div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Falling photos land and pile up here. Clicks pass straight through. -->
+  <div id="pile" class="pile" aria-hidden="true"></div>
+
+  <!-- GitHub mark, referenced by <use href="#github-mark"> -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="github-mark" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+    </symbol>
+  </svg>
+`);
+
 const stage = document.getElementById("stage");
+// The root page's fake "I'm not a robot" check (other entry pages don't have these).
 const check = document.getElementById("check");
 const checkLabel = document.getElementById("check-label");
 const verify = document.getElementById("verify");
@@ -63,33 +126,46 @@ const apiReady = new Promise((resolve) => {
   }
 })();
 
-// Fake "I'm not a robot" check. Both clicks (checkbox, then Verify) are real user
-// gestures, which is what lets the browser play the video with sound.
-check.addEventListener("click", () => {
-  if (check.classList.contains("verifying") || check.classList.contains("done")) return;
+// Fake "I'm not a robot" check (root page only). Both clicks (checkbox, then Verify) are real
+// user gestures, which is what lets the browser play the video with sound.
+if (check) {
+  check.addEventListener("click", () => {
+    if (check.classList.contains("verifying") || check.classList.contains("done")) return;
 
-  check.classList.add("verifying");
-  checkLabel.textContent = "Verifying…";
+    check.classList.add("verifying");
+    checkLabel.textContent = "Verifying…";
 
-  setTimeout(() => {
-    check.classList.remove("verifying");
-    check.classList.add("done");
-    check.setAttribute("aria-checked", "true");
-    checkLabel.textContent = "You're human!";
+    setTimeout(() => {
+      check.classList.remove("verifying");
+      check.classList.add("done");
+      check.setAttribute("aria-checked", "true");
+      checkLabel.textContent = "You're human!";
 
-    verify.disabled = false;
-    verify.classList.add("ready");
-    verify.focus({ preventScroll: true });
-  }, VERIFY_MS);
-});
+      verify.disabled = false;
+      verify.classList.add("ready");
+      verify.focus({ preventScroll: true });
+    }, VERIFY_MS);
+  });
+}
 
-verify.addEventListener("click", () => {
+let started = false;
+
+// Called by the click on any [data-rickroll-start] element (a real user gesture, so the
+// video can play with sound).
+function startRickroll() {
+  if (started) return;
+  started = true;
+
   // Fullscreen is intentionally not requested: it made the video start muted.
   stage.classList.add("leaving");
   player.hidden = false;
   document.title = "Never Gonna Give You Up";
 
   apiReady.then(startPlayer);
+}
+
+document.querySelectorAll("[data-rickroll-start]").forEach((el) => {
+  el.addEventListener("click", startRickroll);
 });
 
 function startPlayer() {
