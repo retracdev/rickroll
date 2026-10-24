@@ -39,13 +39,13 @@ const COUNTER_TIMEOUT_MS = 8000;
 // button the scan is over and the video can simply appear and play. (The filter still sees and
 // can block everything; this only moves the waiting to a spot where it is hidden by the intro.)
 //
-// How we guess it is filtered: school filters typically redirect (or block) Google Sites, and
-// they act on page/frame loads, not on plain fetches. So we embed a Google Sites URL in a hidden
+// How we guess it is filtered: school filters typically redirect (or block) game sites like CrazyGames, and
+// they act on page/frame loads, not on plain fetches. So we embed a CrazyGames docs page in a hidden
 // iframe (probe.html, which explains the trick) and see whether the frame got redirected to
-// another domain. As a second signal a plain fetch to Google Sites that fails outright also
+// another domain. As a second signal a plain fetch to the same site that fails outright also
 // counts. Add ?warmup=1 to the page URL to force the warm-up (to test it), or ?warmup=0 to skip
 // it. The 3.63s hold only ever happens when this check says "filtered".
-const FILTER_PROBE_URL = "https://sites.google.com/"; // for the fetch signal (robots.txt would be blocked by ORB)
+const FILTER_PROBE_URL = "https://docs.crazygames.com/"; // for the fetch signal
 const FILTER_PROBE_TIMEOUT_MS = 3000;
 const FILTER_HOLD_MS = 3630; // how long the filter's loading screen lasts
 const FILTER_READY_FAILSAFE_MS = 8000; // stop waiting for the hidden player after this long
@@ -153,7 +153,7 @@ let ytPlayer = null;
 let resolveStandbyReady;
 const standbyReady = new Promise((resolve) => (resolveStandbyReady = resolve));
 
-// Hidden same-origin page that embeds Google Sites and reports whether the frame was redirected.
+// Hidden same-origin page that embeds the probe site and reports whether the frame was redirected.
 function probeFrame() {
   return new Promise((resolve) => {
     const frame = document.createElement("iframe");

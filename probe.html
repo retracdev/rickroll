@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="robots" content="noindex">
   <!-- Loaded invisibly by script.js to guess whether this machine sits behind a school web filter.
-       It embeds a Google Sites URL that normally answers with no redirect. The policy below only
-       allows framing sites.google.com, so if something (a filter) redirects that frame to another
+       It embeds a page (docs.crazygames.com, which allows framing) that normally answers with no redirect. The policy below only
+       allows framing docs.crazygames.com, so if something (a filter) redirects that frame to another
        domain, the browser fires a securitypolicyviolation event naming the new origin. We can't
        read a cross-origin frame's URL any other way. The verdict is posted to the parent page. -->
-  <meta http-equiv="Content-Security-Policy" content="frame-src https://sites.google.com">
+  <meta http-equiv="Content-Security-Policy" content="frame-src https://docs.crazygames.com">
 </head>
 <body>
   <script>
-    const PROBE_URL = "https://sites.google.com/robots.txt";
+    const PROBE_URL = "https://docs.crazygames.com/";
     // After the frame finishes loading, wait a moment for a violation event that may still be queued.
     const SETTLE_MS = 400;
 
