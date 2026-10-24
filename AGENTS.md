@@ -14,9 +14,21 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 
 5. "Mayhem": measured from when the video starts playing, photos of Rick fall at the left and right edges from 3.0s to 6.6s (`MAYHEM_START_MS` / `MAYHEM_END_MS` in `script.js`) in a fixed `#pile` overlay (`pointer-events: none`). Physics is a small loose rAF sim (gravity, air drag, flutter sway, tumbling, bounce, then a flop to a resting tilt) and a per-side heightmap. The pile is capped at ~2-3 rows (`PILE_MAX_PX`); once full, later photos pass straight through it and fall off the screen. Images: `assets/rickroll.png`, `assets/rickroll.jpeg`, and three CC-licensed Wikimedia photos in `assets/falling/` (credits in `assets/falling/CREDITS.md`; keep it updated when adding images). Then `PILE_RELEASE_AFTER_MS` (2.77s) after the falling stops (so ~9.37s after playback starts), whatever is still piled up drops through the bottom of the screen and is removed (`releasePile()`). Reduced-motion users get a static pile with no falling (it just disappears at release time).
 
+## Variations (entry pages)
+The Rickroll itself (steps 3-5 + counter) is shared; only the intro screen differs per entry page. `script.js` injects the video player, the "You've been Rickrolled!" section, the falling-photo layer and the GitHub icon into every page that loads it, so don't copy that markup into HTML files. An entry page needs:
+- an element with `id="stage"` (it fades out on start),
+- one or more elements with the `data-rickroll-start` attribute (clicking one starts the show; it must be a real user click so audio works),
+- `<script src="../script.js">` (relative to the page; `script.js` resolves asset paths against the site root via `SITE_ROOT`, so pages in subfolders work),
+- `../style.css` for the shared player styles, plus its own CSS. Wrap any page-specific JS in an IIFE (classic scripts share globals with `script.js`, e.g. `render`, `player`, `stage`).
+
+Pages:
+- `/` (`index.html`): the "Quick security check" intro (steps 1-2), `Verify` is the start button.
+- `/games/` (`games/index.html`, `games.css`, `games.js`): fake "GamerNow" games site in glossy candy pink/purple (owner-supplied logo `assets/games/gamernow-logo.png`). Shows the logo, a fake loading bar (`LOAD_MS`, uneven progress, silly tips), then the bar fades out and a "Play Now! →" logo-button pops in (CSS layered-outline text in Fredoka; stars/sparkles are inline SVG). Clicking it starts the Rickroll. This page uses Fredoka for the themed text; everything else stays Inter.
+
 ## Files
-- `index.html`, `style.css`, `script.js`: the whole site.
-- `assets/`: images (`rickroll.png` transparent, `rickroll.jpeg`, `profile.jpg` = the owner's avatar).
+- `index.html`, `style.css`, `script.js`: the root page and the shared Rickroll engine.
+- `games/`: the `/games/` variation.
+- `assets/`: images (`rickroll.png` transparent, `rickroll.jpeg`, `profile.jpg` = the owner's avatar); `assets/games/` has the GamerNow logo.
 - `assets/falling/`: photos for the falling effect (+ `CREDITS.md`).
 - `.nojekyll`: keeps GitHub Pages from running Jekyll.
 
@@ -35,7 +47,7 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 ## Counter
 - The count lives on the free Abacus counter service (`https://abacus.jasoncameron.dev`), namespace `retracdev-rickroll`, key `rickrolls` (`COUNTER_HIT_URL` in `script.js`). It is outside the repo, so it survives GitHub Pages / Actions deploys and changes without any redeploy.
 - On every page load `script.js` calls `/hit/...` once (atomic increment, returns `{"value": n}`) and writes the result into `#counter`. No cookies/localStorage, so reloads count again. If the request fails or times out, `#counter` shows `—`.
-- Abacus has no auth, so anyone can call the hit URL and bump the number; fine for a joke site. For testing use a different key (e.g. `retracdev-rickroll-test`), never the real one. If the service ever disappears, swap `COUNTER_HIT_URL` (a Cloudflare Worker + KV would be the next option).
+- Abacus has no auth, so anyone can call the hit URL and bump the number; fine for a joke site. Every page load of any entry page bumps the counter, including local/headless test loads; the owner doesn't mind test hits, so don't go out of your way to avoid them. If the service ever disappears, swap `COUNTER_HIT_URL` (a Cloudflare Worker + KV would be the next option).
 
 ## Planned (not yet built)
 - "About Me" section and GitHub link.
