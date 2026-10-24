@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" class="lms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LMS Max - Make school easier</title>
+  <meta name="description" content="LMS Max: grades, themes and quick submit for your learning platform.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%2338c722'/%3E%3Cpath d='M26 52l16 16 32-34' fill='none' stroke='%23fff' stroke-width='12' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="lms.css">
+</head>
+<body class="lms-body">
+  <div id="stage" class="lms-page">
+    <!-- ===== Hero ===== -->
+    <header class="lms-hero">
+      <img class="lms-logo" src="../assets/lms/lmsmax-logo.png" alt="LMS Max" width="1000" height="334">
+      <h1 class="lms-title">School, but easier.</h1>
+      <p class="lms-sub">LMS Max adds your grades, themes and one-step submit right inside your learning platform.</p>
+
+      <!-- Install / installing / installed all live in this one slot so the page doesn't jump. -->
+      <div class="lms-slot">
+        <div id="cta" class="lms-cta">
+          <button id="install" class="lms-install" type="button">
+            <svg class="lms-dl" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v11m0 0l-4.5-4.5M12 14l4.5-4.5M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Install</span>
+          </button>
+          <p class="lms-fine">Free &middot; Takes about 10 seconds</p>
+        </div>
+
+        <section id="installer" class="lms-installer" hidden aria-live="polite">
+          <div id="progress" class="lms-progress" role="progressbar" aria-label="Installing LMS Max" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="lms-bar"><div id="fill" class="lms-fill"></div></div>
+            <div class="lms-progress-text">
+              <span id="stage-label">Downloading content…</span>
+              <span id="pct">0%</span>
+            </div>
+          </div>
+
+          <div id="done" class="lms-done" hidden>
+            <svg class="lms-check" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="11" fill="#38c722"/>
+              <path d="M6.5 12.5l3.8 3.8 7.2-7.6" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h2>LMS Max is installed!</h2>
+            <p>Ready to turn it on?</p>
+            <button id="start" class="lms-install lms-start" type="button" data-rickroll-start>
+              <span>Start</span>
+              <svg class="lms-arrow" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                <path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <a class="lms-scroll" href="#features">
+        <span>See what's inside</span>
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </header>
+
+    <!-- ===== Features ===== -->
+    <main id="features" class="lms-features">
+      <h2>Everything you wish your LMS did</h2>
+      <p class="lms-features-sub">Small upgrades that save you clicks every single day.</p>
+
+      <div class="lms-grid">
+        <article class="lms-feature">
+          <span class="lms-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m6 10V5m6 14v-7m4 7H3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <h3>1-Click Grades</h3>
+          <p>See every grade from every class in one clean view. No more digging through tabs.</p>
+        </article>
+
+        <article class="lms-feature">
+          <span class="lms-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 100 18c1.4 0 2-.9 2-2 0-1.2-.9-1.7-.9-2.7 0-1 .8-1.6 1.9-1.6H17a4 4 0 004-4c0-4.4-4-7.7-9-7.7z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/><circle cx="11" cy="7" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8" r="1.2" fill="currentColor"/></svg>
+          </span>
+          <h3>Themes</h3>
+          <p>Make it yours with colors, dark mode and fonts that are easy on the eyes.</p>
+        </article>
+
+        <article class="lms-feature">
+          <span class="lms-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 002 2h10a2 2 0 002-2v-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <h3>Easy-Submit</h3>
+          <p>Drag, drop and hand in assignments in a single step, with a receipt every time.</p>
+        </article>
+
+        <article class="lms-feature">
+          <span class="lms-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.3"/><path d="M12 7v5l3.2 2" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <h3>Due-Date Radar</h3>
+          <p>Upcoming work sorted by what's due first, so nothing sneaks up on you.</p>
+        </article>
+
+        <article class="lms-feature">
+          <span class="lms-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.3"/><path d="M8 8h8M8 12.5h2m3 0h3M8 16.5h2m3 0h3" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/></svg>
+          </span>
+          <h3>Grade Calculator</h3>
+          <p>Find out exactly what you need on the next test to hit your target grade.</p>
+        </article>
+
+        <article class="lms-feature">
+          <span class="lms-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M12 3v3m0 0a8 8 0 100 16 8 8 0 000-16zm0 5v3.5l2.3 1.5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          <h3>Focus Timer</h3>
+          <p>Built-in study sessions with gentle break reminders to keep you on track.</p>
+        </article>
+      </div>
+
+      <section class="lms-cta-bottom">
+        <h2>Ready when you are.</h2>
+        <a class="lms-install lms-install-link" href="#stage">
+          <svg class="lms-dl" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3v11m0 0l-4.5-4.5M12 14l4.5-4.5M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>Install LMS Max</span>
+        </a>
+      </section>
+
+      <footer class="lms-footer">&copy; LMS Max &middot; Made for students</footer>
+    </main>
+  </div>
+
+  <!-- "Extension installed" notice, shown near the end of the fake install (lms.js fills in the browser name). -->
+  <aside id="ext-card" class="ext-card" role="status" hidden>
+    <svg class="ext-check" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="11" fill="#1e8e3e"/>
+      <path d="M6.8 12.6l3.5 3.5 7-7.4" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="ext-text">
+      <p id="ext-title" class="ext-title">LMS Max has installed an extension to your browser</p>
+      <p class="ext-body">LMS Max has installed an extension to your browser called &ldquo;LMS Max.&rdquo;</p>
+    </div>
+    <button id="ext-close" class="ext-close" type="button" aria-label="Dismiss">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </aside>
+
+  <!-- The video player, "You've been Rickrolled!" section and falling-photo layer are added by ../script.js. -->
+
+  <script src="../script.js"></script>
+  <script src="lms.js"></script>
+</body>
+</html>
