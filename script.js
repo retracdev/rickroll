@@ -32,6 +32,24 @@ const FALL_IMAGES = [
 const COUNTER_HIT_URL = "https://abacus.jasoncameron.dev/hit/retracdev-rickroll/rickrolls";
 const COUNTER_TIMEOUT_MS = 8000;
 
+// School-filter warm-up. Some school web filters scan every new window and show a loading
+// screen for a few seconds (audio keeps playing) before the page is visible. On a machine that
+// looks filtered we load the video in the background, paused and invisible, and make the
+// fake check / loading bar wait out that delay, so by the time the visitor presses the start
+// button the scan is over and the video can simply appear and play. (The filter still sees and
+// can block everything; this only moves the waiting to a spot where it is hidden by the intro.)
+//
+// How we guess it is filtered: school filters typically block (or redirect away) requests to
+// Google Sites. A cross-origin iframe can't reveal where it ended up, and a fetch can't see
+// redirects across origins either, so we just try to fetch it: a normal network gets an opaque
+// response back, a filtered one usually gets a network error. Add ?warmup=1 to the page URL to
+// force the warm-up (to test it), or ?warmup=0 to skip it. The 3.63s hold only ever happens
+// when this check says "filtered".
+const FILTER_PROBE_URL = "https://sites.google.com/";
+const FILTER_PROBE_TIMEOUT_MS = 3000;
+const FILTER_HOLD_MS = 3630; // how long the filter's loading screen lasts
+const FILTER_READY_FAILSAFE_MS = 8000; // stop waiting for the hidden player after this long
+
 // The video player, "You've been Rickrolled!" section, falling-photo layer and GitHub icon are
 // the same on every entry page, so they live here instead of being copied into each HTML file.
 // An entry page only needs its own intro screen: an element with id="stage" (faded out on
@@ -126,6 +144,56 @@ const apiReady = new Promise((resolve) => {
   }
 })();
 
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+let started = false; // the visitor pressed the start button
+let playerCreated = false;
+let playerReady = false;
+let ytPlayer = null;
+let resolveStandbyReady;
+const standbyReady = new Promise((resolve) => (resolveStandbyReady = resolve));
+
+async function looksFiltered() {
+  const forced = new URLSearchParams(location.search).get("warmup");
+  if (forced === "1") return true;
+  if (forced === "0") return false;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FILTER_PROBE_TIMEOUT_MS);
+  try {
+    await fetch(FILTER_PROBE_URL, {
+      mode: "no-cors",
+      credentials: "omit",
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    return false; // reached it: looks like a normal network
+  } catch {
+    return true; // blocked, unreachable, or timed out
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Resolves once it's safe to let the visitor in: immediately on a normal machine, or after the
+// hidden player has loaded and FILTER_HOLD_MS has passed on one that looks filtered. The intro
+// screens (fake check, loading bar) wait for this. Never rejects.
+const warmupDone = (async function warmUp() {
+  try {
+    if (!(await looksFiltered()) || started) return;
+
+    // Standby: the player is in the page but invisible, paused, and silent.
+    player.classList.add("standby");
+    player.hidden = false;
+    await apiReady;
+    createPlayer(false);
+    await Promise.race([standbyReady, wait(FILTER_READY_FAILSAFE_MS)]);
+    await wait(FILTER_HOLD_MS);
+  } catch {
+    // Warm-up is only an optimisation; never block the visitor because of it.
+  }
+})();
+
 // Fake "I'm not a robot" check (root page only). Both clicks (checkbox, then Verify) are real
 // user gestures, which is what lets the browser play the video with sound.
 if (check) {
@@ -135,7 +203,8 @@ if (check) {
     check.classList.add("verifying");
     checkLabel.textContent = "Verifying…";
 
-    setTimeout(() => {
+    // "You're human!" also waits for the warm-up (a no-op on a normal machine).
+    Promise.all([wait(VERIFY_MS), warmupDone]).then(() => {
       check.classList.remove("verifying");
       check.classList.add("done");
       check.setAttribute("aria-checked", "true");
@@ -144,11 +213,9 @@ if (check) {
       verify.disabled = false;
       verify.classList.add("ready");
       verify.focus({ preventScroll: true });
-    }, VERIFY_MS);
+    });
   });
 }
-
-let started = false;
 
 // Called by the click on any [data-rickroll-start] element (a real user gesture, so the
 // video can play with sound).
@@ -159,23 +226,29 @@ function startRickroll() {
   // Fullscreen is intentionally not requested: it made the video start muted.
   stage.classList.add("leaving");
   player.hidden = false;
+  player.classList.remove("standby"); // reveal the pre-loaded player, if there is one
   document.title = "Never Gonna Give You Up";
 
-  apiReady.then(startPlayer);
+  if (playerReady) beginPlayback();
+  else apiReady.then(() => createPlayer(true)); // no-op if the standby player already exists
 }
 
 document.querySelectorAll("[data-rickroll-start]").forEach((el) => {
   el.addEventListener("click", startRickroll);
 });
 
-function startPlayer() {
+// autoplay=false creates the paused standby player used by the warm-up.
+function createPlayer(autoplay) {
+  if (playerCreated) return;
+  playerCreated = true;
+
   new YT.Player("yt", {
     host: "https://www.youtube-nocookie.com",
     videoId: VIDEO_ID,
     width: "100%",
     height: "100%",
     playerVars: {
-      autoplay: 1,
+      autoplay: autoplay ? 1 : 0,
       loop: 1,
       playlist: VIDEO_ID, // YouTube only loops when playlist is set
       iv_load_policy: 3,
@@ -194,7 +267,15 @@ function startPlayer() {
 }
 
 function onReady(event) {
-  const yt = event.target;
+  ytPlayer = event.target;
+  playerReady = true;
+  resolveStandbyReady();
+  // A standby player stays paused until the visitor presses the start button.
+  if (started) beginPlayback();
+}
+
+function beginPlayback() {
+  const yt = ytPlayer;
   yt.unMute();
   yt.playVideo();
 
@@ -225,8 +306,8 @@ function onStateChange(event) {
     event.target.seekTo(0);
     event.target.playVideo();
   }
-  // Never stay paused (e.g. if something slips past the click shield).
-  if (event.data === YT.PlayerState.PAUSED) {
+  // Never stay paused (e.g. if something slips past the click shield), once the show started.
+  if (event.data === YT.PlayerState.PAUSED && started) {
     event.target.playVideo();
   }
 }
