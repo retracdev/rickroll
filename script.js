@@ -22,6 +22,12 @@ const FALL_IMAGES = [
   "assets/falling/rick-dallas.jpg",
 ];
 
+// Rickroll counter: kept on the free Abacus counter service (https://abacus.jasoncameron.dev),
+// not in this repo, so it survives deploys and changes without a redeploy. Every page load
+// (reloads included) hits it once; no cookies or localStorage are used.
+const COUNTER_HIT_URL = "https://abacus.jasoncameron.dev/hit/retracdev-rickroll/rickrolls";
+const COUNTER_TIMEOUT_MS = 8000;
+
 const stage = document.getElementById("stage");
 const check = document.getElementById("check");
 const checkLabel = document.getElementById("check-label");
@@ -38,6 +44,24 @@ const apiReady = new Promise((resolve) => {
   tag.src = "https://www.youtube.com/iframe_api";
   document.head.appendChild(tag);
 });
+
+// Count this visit as soon as the page loads (the counter card is revealed later, by which
+// time the number has long since arrived). If the service is down, show a dash instead.
+(async function countRickroll() {
+  const counter = document.getElementById("counter");
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), COUNTER_TIMEOUT_MS);
+  try {
+    const res = await fetch(COUNTER_HIT_URL, { signal: controller.signal, cache: "no-store" });
+    const { value } = await res.json();
+    if (!Number.isFinite(value)) throw new Error("bad counter response");
+    counter.textContent = value.toLocaleString("en-US");
+  } catch {
+    counter.textContent = "—";
+  } finally {
+    clearTimeout(timer);
+  }
+})();
 
 // Fake "I'm not a robot" check. Both clicks (checkbox, then Verify) are real user
 // gestures, which is what lets the browser play the video with sound.
