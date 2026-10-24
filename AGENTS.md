@@ -16,7 +16,7 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 
 ## School-filter warm-up
 Some school web filters scan each new window and show a loading screen for ~3.63s. `script.js` handles it for every entry page:
-- `looksFiltered()` tries `fetch("https://sites.google.com/", { mode: "no-cors" })`; a network error/timeout means "probably filtered" (school filters usually block Google Sites), success means a normal network. A cross-origin iframe or fetch can't see where a redirect ended up, so this is only a guess. `?warmup=1` forces the warm-up, `?warmup=0` skips it (for testing).
+- `looksFiltered()` combines two signals. Main one: a hidden same-origin iframe loads `probe.html`, which frames `https://sites.google.com/robots.txt` (answers 200 with no redirect for normal visitors) under a CSP of `frame-src https://sites.google.com`. If a filter redirects that frame to another domain, the browser fires a `securitypolicyviolation` event (a cross-origin frame's URL can't be read any other way) and the probe `postMessage`s "filtered" to the page; if the frame just loads, it reports "not filtered". Second signal: a plain `fetch("https://sites.google.com/", { mode: "no-cors" })` that errors outright. Filters act on page/frame loads, not fetches, which is why the iframe is the main signal. Use `https://sites.google.com/robots.txt` for frames, not the root (the root redirects everyone to a Google login page). Timeouts count as "not filtered". `?warmup=1` forces the warm-up, `?warmup=0` skips it (for testing). Still a guess: untested against a real filter other than via `?warmup=1`.
 - Only if filtered: the player is created early in a hidden `standby` state (`.player.standby`, paused, silent, invisible), and `warmupDone` resolves `FILTER_HOLD_MS` (3.63s) after it is ready (with an 8s failsafe). On a normal machine `warmupDone` is already resolved, so nothing is delayed.
 - Intro screens must wait for `warmupDone`: the root page doesn't show "You're human!" and the games loader stays at 99% until it resolves. New entry pages should do the same before enabling their start button.
 - When the visitor presses the start button, `startRickroll()` removes `standby` and plays the already-loaded video.
@@ -35,6 +35,7 @@ Pages:
 
 ## Files
 - `index.html`, `style.css`, `script.js`: the root page and the shared Rickroll engine.
+- `probe.html`: invisible helper page for the school-filter check (see above); contains no visible text.
 - `games/`: the `/games/` variation.
 - `assets/`: images (`rickroll.png` transparent, `rickroll.jpeg`, `profile.jpg` = the owner's avatar); `assets/games/` has the GamerNow logo.
 - `assets/falling/`: photos for the falling effect (+ `CREDITS.md`).

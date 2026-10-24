@@ -39,13 +39,13 @@ const COUNTER_TIMEOUT_MS = 8000;
 // button the scan is over and the video can simply appear and play. (The filter still sees and
 // can block everything; this only moves the waiting to a spot where it is hidden by the intro.)
 //
-// How we guess it is filtered: school filters typically block (or redirect away) requests to
-// Google Sites. A cross-origin iframe can't reveal where it ended up, and a fetch can't see
-// redirects across origins either, so we just try to fetch it: a normal network gets an opaque
-// response back, a filtered one usually gets a network error. Add ?warmup=1 to the page URL to
-// force the warm-up (to test it), or ?warmup=0 to skip it. The 3.63s hold only ever happens
-// when this check says "filtered".
-const FILTER_PROBE_URL = "https://sites.google.com/";
+// How we guess it is filtered: school filters typically redirect (or block) Google Sites, and
+// they act on page/frame loads, not on plain fetches. So we embed a Google Sites URL in a hidden
+// iframe (probe.html, which explains the trick) and see whether the frame got redirected to
+// another domain. As a second signal a plain fetch to Google Sites that fails outright also
+// counts. Add ?warmup=1 to the page URL to force the warm-up (to test it), or ?warmup=0 to skip
+// it. The 3.63s hold only ever happens when this check says "filtered".
+const FILTER_PROBE_URL = "https://sites.google.com/"; // for the fetch signal (robots.txt would be blocked by ORB)
 const FILTER_PROBE_TIMEOUT_MS = 3000;
 const FILTER_HOLD_MS = 3630; // how long the filter's loading screen lasts
 const FILTER_READY_FAILSAFE_MS = 8000; // stop waiting for the hidden player after this long
@@ -153,11 +153,35 @@ let ytPlayer = null;
 let resolveStandbyReady;
 const standbyReady = new Promise((resolve) => (resolveStandbyReady = resolve));
 
-async function looksFiltered() {
-  const forced = new URLSearchParams(location.search).get("warmup");
-  if (forced === "1") return true;
-  if (forced === "0") return false;
+// Hidden same-origin page that embeds Google Sites and reports whether the frame was redirected.
+function probeFrame() {
+  return new Promise((resolve) => {
+    const frame = document.createElement("iframe");
+    frame.src = new URL("probe.html", SITE_ROOT).href;
+    frame.tabIndex = -1;
+    frame.setAttribute("aria-hidden", "true");
+    frame.style.cssText = "position:absolute;width:0;height:0;border:0;visibility:hidden";
 
+    const finish = (filtered) => {
+      clearTimeout(timer);
+      window.removeEventListener("message", onMessage);
+      frame.remove();
+      resolve(filtered);
+    };
+    const onMessage = (event) => {
+      if (event.source === frame.contentWindow && typeof event.data?.rickrollProbe === "boolean") {
+        finish(event.data.rickrollProbe);
+      }
+    };
+    const timer = setTimeout(() => finish(false), FILTER_PROBE_TIMEOUT_MS);
+
+    window.addEventListener("message", onMessage);
+    document.body.appendChild(frame);
+  });
+}
+
+// Second signal: the plain request fails outright (blocked at the network level).
+async function fetchBlocked() {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FILTER_PROBE_TIMEOUT_MS);
   try {
@@ -167,12 +191,29 @@ async function looksFiltered() {
       cache: "no-store",
       signal: controller.signal,
     });
-    return false; // reached it: looks like a normal network
-  } catch {
-    return true; // blocked, unreachable, or timed out
+    return false;
+  } catch (err) {
+    return err.name !== "AbortError"; // a timeout alone doesn't count
   } finally {
     clearTimeout(timer);
   }
+}
+
+// True as soon as either signal says "filtered"; false once both say no.
+function looksFiltered() {
+  const forced = new URLSearchParams(location.search).get("warmup");
+  if (forced === "1") return Promise.resolve(true);
+  if (forced === "0") return Promise.resolve(false);
+
+  return new Promise((resolve) => {
+    let pending = 2;
+    for (const signal of [probeFrame(), fetchBlocked()]) {
+      signal.then((filtered) => {
+        if (filtered) resolve(true);
+        else if (--pending === 0) resolve(false);
+      });
+    }
+  });
 }
 
 // Resolves once it's safe to let the visitor in: immediately on a normal machine, or after the
