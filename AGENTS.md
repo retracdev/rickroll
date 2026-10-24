@@ -23,7 +23,7 @@ The Rickroll itself (steps 3-5 + counter) is shared; only the intro screen diffe
 
 Pages:
 - `/` (`index.html`): the "Quick security check" intro (steps 1-2), `Verify` is the start button.
-- `/games/` (`games/index.html`, `games.css`, `games.js`): fake "GamerNow" games site in glossy candy pink/purple (owner-supplied logo `assets/games/gamernow-logo.png`). Shows the logo, a fake loading bar (`LOAD_MS`, uneven progress, silly tips), then the bar fades out and a "Play Now! →" logo-button pops in (CSS layered-outline text in Fredoka; stars/sparkles are inline SVG). Clicking it starts the Rickroll. This page uses Fredoka for the themed text; everything else stays Inter.
+- `/games/` (`games/index.html`, `games.css`, `games.js`): fake "GamerNow" games site in glossy candy pink/purple (owner-supplied logo `assets/games/gamernow-logo.png`). Shows the logo, a fake loading bar (`LOAD_MS`, uneven progress, silly tips), then the bar fades out and a "Play Now! →" logo-button pops in (CSS layered-outline text in Fredoka; stars/sparkles are inline SVG). Clicking it starts the Rickroll. Fredoka is scoped to the `.gn-stage` intro only; the Rickroll that follows (player, "You've been Rickrolled!", cards) must stay Inter, so never set Fredoka on `body`.
 
 ## Files
 - `index.html`, `style.css`, `script.js`: the root page and the shared Rickroll engine.
