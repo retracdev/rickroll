@@ -37,7 +37,5 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 - On every page load `script.js` calls `/hit/...` once (atomic increment, returns `{"value": n}`) and writes the result into `#counter`. No cookies/localStorage, so reloads count again. If the request fails or times out, `#counter` shows `—`.
 - Abacus has no auth, so anyone can call the hit URL and bump the number; fine for a joke site. For testing use a different key (e.g. `retracdev-rickroll-test`), never the real one. If the service ever disappears, swap `COUNTER_HIT_URL` (a Cloudflare Worker + KV would be the next option).
 
-- Under the number is a green "Thanks for making the counter just a little bit higher!" pill (`#thanks`) with a pulsing green dot. Once the video starts playing it appears `THANKS_DELAY_MS` (2s, so after the card has faded in), stays `THANKS_VISIBLE_MS` (10s), then fades out (`showThanks()` in `script.js`; `.show` toggles it). It is skipped if the count request failed.
-
 ## Planned (not yet built)
 - "About Me" section and GitHub link.

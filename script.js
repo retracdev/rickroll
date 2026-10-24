@@ -27,9 +27,6 @@ const FALL_IMAGES = [
 // (reloads included) hits it once; no cookies or localStorage are used.
 const COUNTER_HIT_URL = "https://abacus.jasoncameron.dev/hit/retracdev-rickroll/rickrolls";
 const COUNTER_TIMEOUT_MS = 8000;
-// The green "Thanks for making the counter higher" pill: shows after the reveal, for 10s.
-const THANKS_DELAY_MS = 2000;
-const THANKS_VISIBLE_MS = 10000;
 
 const stage = document.getElementById("stage");
 const check = document.getElementById("check");
@@ -50,8 +47,7 @@ const apiReady = new Promise((resolve) => {
 
 // Count this visit as soon as the page loads (the counter card is revealed later, by which
 // time the number has long since arrived). If the service is down, show a dash instead.
-// Resolves to true if the visit was counted (that's when the "thanks" pill is shown).
-const counted = (async function countRickroll() {
+(async function countRickroll() {
   const counter = document.getElementById("counter");
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), COUNTER_TIMEOUT_MS);
@@ -60,25 +56,12 @@ const counted = (async function countRickroll() {
     const { value } = await res.json();
     if (!Number.isFinite(value)) throw new Error("bad counter response");
     counter.textContent = value.toLocaleString("en-US");
-    return true;
   } catch {
     counter.textContent = "—";
-    return false;
   } finally {
     clearTimeout(timer);
   }
 })();
-
-// Green pill under the counter: fades in once the page below the video has appeared,
-// stays THANKS_VISIBLE_MS, then fades out.
-async function showThanks() {
-  if (!(await counted)) return;
-  const thanks = document.getElementById("thanks");
-  setTimeout(() => {
-    thanks.classList.add("show");
-    setTimeout(() => thanks.classList.remove("show"), THANKS_VISIBLE_MS);
-  }, THANKS_DELAY_MS);
-}
 
 // Fake "I'm not a robot" check. Both clicks (checkbox, then Verify) are real user
 // gestures, which is what lets the browser play the video with sound.
@@ -158,7 +141,6 @@ function onStateChange(event) {
   if (event.data === YT.PlayerState.PLAYING && !revealScheduled) {
     revealScheduled = true;
     setTimeout(() => player.classList.add("revealed"), REVEAL_AFTER_MS);
-    showThanks();
     scheduleMayhem();
   }
 
