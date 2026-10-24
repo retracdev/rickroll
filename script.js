@@ -33,22 +33,15 @@ const COUNTER_HIT_URL = "https://abacus.jasoncameron.dev/hit/retracdev-rickroll/
 const COUNTER_TIMEOUT_MS = 8000;
 
 // School-filter warm-up. Some school web filters scan every new window and show a loading
-// screen for a few seconds (audio keeps playing) before the page is visible. On a machine that
-// looks filtered we load the video in the background, paused and invisible, and make the
-// fake check / loading bar wait out that delay, so by the time the visitor presses the start
-// button the scan is over and the video can simply appear and play. (The filter still sees and
-// can block everything; this only moves the waiting to a spot where it is hidden by the intro.)
-//
-// How we guess it is filtered: school filters typically redirect (or block) game sites like CrazyGames, and
-// they act on page/frame loads, not on plain fetches. So we embed a CrazyGames docs page in a hidden
-// iframe (probe.html, which explains the trick) and see whether the frame got redirected to
-// another domain. As a second signal a plain fetch to the same site that fails outright also
-// counts. Add ?warmup=1 to the page URL to force the warm-up (to test it), or ?warmup=0 to skip
-// it. The 3.63s hold only ever happens when this check says "filtered".
-const FILTER_PROBE_URL = "https://docs.crazygames.com/"; // for the fetch signal
-const FILTER_PROBE_TIMEOUT_MS = 3000;
-const FILTER_HOLD_MS = 3630; // how long the filter's loading screen lasts
-const FILTER_READY_FAILSAFE_MS = 8000; // stop waiting for the hidden player after this long
+// screen for a few seconds (audio keeps playing) before the page is visible. So on every visit,
+// as soon as the page loads, we load the video in the background, paused and invisible, and
+// make the fake check / loading bar wait out that delay, so by the time the visitor presses the
+// start button the scan is over and the video can simply appear and play. (The filter still sees
+// and can block everything; this only moves the waiting to a spot where it is hidden by the
+// intro.) We used to try to detect a filtered machine first, but it can't be done reliably, so
+// everyone gets the same short wait.
+const WARMUP_HOLD_MS = 3630; // how long the filter's loading screen lasts, counted from page load
+const WARMUP_READY_FAILSAFE_MS = 8000; // stop waiting for the hidden player after this long
 
 // The video player, "You've been Rickrolled!" section, falling-photo layer and GitHub icon are
 // the same on every entry page, so they live here instead of being copied into each HTML file.
@@ -153,83 +146,20 @@ let ytPlayer = null;
 let resolveStandbyReady;
 const standbyReady = new Promise((resolve) => (resolveStandbyReady = resolve));
 
-// Hidden same-origin page that embeds the probe site and reports whether the frame was redirected.
-function probeFrame() {
-  return new Promise((resolve) => {
-    const frame = document.createElement("iframe");
-    frame.src = new URL("probe.html", SITE_ROOT).href;
-    frame.tabIndex = -1;
-    frame.setAttribute("aria-hidden", "true");
-    frame.style.cssText = "position:absolute;width:0;height:0;border:0;visibility:hidden";
-
-    const finish = (filtered) => {
-      clearTimeout(timer);
-      window.removeEventListener("message", onMessage);
-      frame.remove();
-      resolve(filtered);
-    };
-    const onMessage = (event) => {
-      if (event.source === frame.contentWindow && typeof event.data?.rickrollProbe === "boolean") {
-        finish(event.data.rickrollProbe);
-      }
-    };
-    const timer = setTimeout(() => finish(false), FILTER_PROBE_TIMEOUT_MS);
-
-    window.addEventListener("message", onMessage);
-    document.body.appendChild(frame);
-  });
-}
-
-// Second signal: the plain request fails outright (blocked at the network level).
-async function fetchBlocked() {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FILTER_PROBE_TIMEOUT_MS);
-  try {
-    await fetch(FILTER_PROBE_URL, {
-      mode: "no-cors",
-      credentials: "omit",
-      cache: "no-store",
-      signal: controller.signal,
-    });
-    return false;
-  } catch (err) {
-    return err.name !== "AbortError"; // a timeout alone doesn't count
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
-// True as soon as either signal says "filtered"; false once both say no.
-function looksFiltered() {
-  const forced = new URLSearchParams(location.search).get("warmup");
-  if (forced === "1") return Promise.resolve(true);
-  if (forced === "0") return Promise.resolve(false);
-
-  return new Promise((resolve) => {
-    let pending = 2;
-    for (const signal of [probeFrame(), fetchBlocked()]) {
-      signal.then((filtered) => {
-        if (filtered) resolve(true);
-        else if (--pending === 0) resolve(false);
-      });
-    }
-  });
-}
-
-// Resolves once it's safe to let the visitor in: immediately on a normal machine, or after the
-// hidden player has loaded and FILTER_HOLD_MS has passed on one that looks filtered. The intro
-// screens (fake check, loading bar) wait for this. Never rejects.
+// Resolves once it's safe to let the visitor in: WARMUP_HOLD_MS after the page loaded and once
+// the hidden player is ready. The intro screens (fake check, loading bar) wait for this.
+// Never rejects.
 const warmupDone = (async function warmUp() {
   try {
-    if (!(await looksFiltered()) || started) return;
+    const hold = wait(WARMUP_HOLD_MS);
 
     // Standby: the player is in the page but invisible, paused, and silent.
     player.classList.add("standby");
     player.hidden = false;
     await apiReady;
     createPlayer(false);
-    await Promise.race([standbyReady, wait(FILTER_READY_FAILSAFE_MS)]);
-    await wait(FILTER_HOLD_MS);
+    await Promise.race([standbyReady, wait(WARMUP_READY_FAILSAFE_MS)]);
+    await hold;
   } catch {
     // Warm-up is only an optimisation; never block the visitor because of it.
   }

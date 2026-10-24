@@ -14,12 +14,13 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 
 5. "Mayhem": measured from when the video starts playing, photos of Rick fall at the left and right edges from 3.0s to 6.6s (`MAYHEM_START_MS` / `MAYHEM_END_MS` in `script.js`) in a fixed `#pile` overlay (`pointer-events: none`). Physics is a small loose rAF sim (gravity, air drag, flutter sway, tumbling, bounce, then a flop to a resting tilt) and a per-side heightmap. The pile is capped at ~2-3 rows (`PILE_MAX_PX`); once full, later photos pass straight through it and fall off the screen. Images: `assets/rickroll.png`, `assets/rickroll.jpeg`, and three CC-licensed Wikimedia photos in `assets/falling/` (credits in `assets/falling/CREDITS.md`; keep it updated when adding images). Then `PILE_RELEASE_AFTER_MS` (2.77s) after the falling stops (so ~9.37s after playback starts), whatever is still piled up drops through the bottom of the screen and is removed (`releasePile()`). Reduced-motion users get a static pile with no falling (it just disappears at release time).
 
-## School-filter warm-up
-Some school web filters scan each new window and show a loading screen for ~3.63s. `script.js` handles it for every entry page:
-- `looksFiltered()` combines two signals. Main one: a hidden same-origin iframe loads `probe.html`, which frames `https://docs.crazygames.com/` (a game-site page that allows framing and answers 200 with no redirect for normal visitors; school filters block it) under a CSP of `frame-src https://docs.crazygames.com`. If a filter redirects that frame to another domain, the browser fires a `securitypolicyviolation` event (a cross-origin frame's URL can't be read any other way) and the probe `postMessage`s "filtered" to the page; if the frame just loads, it reports "not filtered". Second signal: a plain `fetch("https://docs.crazygames.com/", { mode: "no-cors" })` that errors outright. Filters act on page/frame loads, not fetches, which is why the iframe is the main signal. Google Sites does not work as the probe: it refuses to be framed and its root redirects everyone to a login page. Pick a probe site that is blocked by filters, allows framing (no `X-Frame-Options`/`frame-ancestors`), and does not redirect normal visitors. Timeouts count as "not filtered". `?warmup=1` forces the warm-up, `?warmup=0` skips it (for testing). Still a guess: untested against a real filter other than via `?warmup=1`.
-- Only if filtered: the player is created early in a hidden `standby` state (`.player.standby`, paused, silent, invisible), and `warmupDone` resolves `FILTER_HOLD_MS` (3.63s) after it is ready (with an 8s failsafe). On a normal machine `warmupDone` is already resolved, so nothing is delayed.
+## School-filter warm-up (always on)
+Some school web filters scan each new window and show a loading screen for ~3.63s. Detecting filtered machines proved unreliable (iframe/fetch probes of Google Sites and CrazyGames didn't trigger on a real school filter), so `script.js` now does the same thing for every visitor on every entry page, starting the moment the page loads:
+- A hidden `standby` player is created straight away (`.player.standby`: in the page so the iframe loads, but invisible, paused, silent).
+- `warmupDone` resolves when both `WARMUP_HOLD_MS` (3.63s since page load) has passed and the standby player is ready (8s failsafe). It never rejects.
 - Intro screens must wait for `warmupDone`: the root page doesn't show "You're human!" and the games loader stays at 99% until it resolves. New entry pages should do the same before enabling their start button.
 - When the visitor presses the start button, `startRickroll()` removes `standby` and plays the already-loaded video.
+- The filter still scans and can still block the page; this only spends the wait where the intro screen hides it.
 - Never mention any of this in text visitors can see (page copy, titles, alt text); filters read page content. Code comments and this file are fine.
 
 ## Variations (entry pages)
@@ -35,7 +36,6 @@ Pages:
 
 ## Files
 - `index.html`, `style.css`, `script.js`: the root page and the shared Rickroll engine.
-- `probe.html`: invisible helper page for the school-filter check (see above); contains no visible text.
 - `games/`: the `/games/` variation.
 - `assets/`: images (`rickroll.png` transparent, `rickroll.jpeg`, `profile.jpg` = the owner's avatar); `assets/games/` has the GamerNow logo.
 - `assets/falling/`: photos for the falling effect (+ `CREDITS.md`).
