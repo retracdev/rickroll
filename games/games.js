@@ -55,12 +55,17 @@
     }, LOAD_FADE_MS);
   }
 
+  // The bar can't reach 100% until the shared warm-up (see warmupDone in ../script.js) is over;
+  // on a normal machine that is already true, so the timing is unchanged.
+  let warm = false;
+  warmupDone.then(() => { warm = true; });
+
   let loadStart = 0;
   function loadFrame(now) {
     if (!loadStart) loadStart = now;
     const t = Math.min(1, (now - loadStart) / LOAD_MS);
-    render(progressAt(t));
-    if (t < 1) requestAnimationFrame(loadFrame);
+    render(warm ? progressAt(t) : Math.min(progressAt(t), 99));
+    if (t < 1 || !warm) requestAnimationFrame(loadFrame);
     else setTimeout(showPlayButton, LOAD_HOLD_MS);
   }
   requestAnimationFrame(loadFrame);

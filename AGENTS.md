@@ -14,6 +14,14 @@ A fun Rickroll website, deployed to GitHub Pages. Plain static site (no build st
 
 5. "Mayhem": measured from when the video starts playing, photos of Rick fall at the left and right edges from 3.0s to 6.6s (`MAYHEM_START_MS` / `MAYHEM_END_MS` in `script.js`) in a fixed `#pile` overlay (`pointer-events: none`). Physics is a small loose rAF sim (gravity, air drag, flutter sway, tumbling, bounce, then a flop to a resting tilt) and a per-side heightmap. The pile is capped at ~2-3 rows (`PILE_MAX_PX`); once full, later photos pass straight through it and fall off the screen. Images: `assets/rickroll.png`, `assets/rickroll.jpeg`, and three CC-licensed Wikimedia photos in `assets/falling/` (credits in `assets/falling/CREDITS.md`; keep it updated when adding images). Then `PILE_RELEASE_AFTER_MS` (2.77s) after the falling stops (so ~9.37s after playback starts), whatever is still piled up drops through the bottom of the screen and is removed (`releasePile()`). Reduced-motion users get a static pile with no falling (it just disappears at release time).
 
+## School-filter warm-up
+Some school web filters scan each new window and show a loading screen for ~3.63s. `script.js` handles it for every entry page:
+- `looksFiltered()` tries `fetch("https://sites.google.com/", { mode: "no-cors" })`; a network error/timeout means "probably filtered" (school filters usually block Google Sites), success means a normal network. A cross-origin iframe or fetch can't see where a redirect ended up, so this is only a guess. `?warmup=1` forces the warm-up, `?warmup=0` skips it (for testing).
+- Only if filtered: the player is created early in a hidden `standby` state (`.player.standby`, paused, silent, invisible), and `warmupDone` resolves `FILTER_HOLD_MS` (3.63s) after it is ready (with an 8s failsafe). On a normal machine `warmupDone` is already resolved, so nothing is delayed.
+- Intro screens must wait for `warmupDone`: the root page doesn't show "You're human!" and the games loader stays at 99% until it resolves. New entry pages should do the same before enabling their start button.
+- When the visitor presses the start button, `startRickroll()` removes `standby` and plays the already-loaded video.
+- Never mention any of this in text visitors can see (page copy, titles, alt text); filters read page content. Code comments and this file are fine.
+
 ## Variations (entry pages)
 The Rickroll itself (steps 3-5 + counter) is shared; only the intro screen differs per entry page. `script.js` injects the video player, the "You've been Rickrolled!" section, the falling-photo layer and the GitHub icon into every page that loads it, so don't copy that markup into HTML files. An entry page needs:
 - an element with `id="stage"` (it fades out on start),

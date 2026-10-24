@@ -141,6 +141,9 @@ body {
   transition: background 1.2s ease;
 }
 .player[hidden] { display: none; }
+/* Pre-loaded behind the intro screen: in the page (so the iframe loads) but invisible and
+   unclickable. Removing the class plays the normal fade-in. */
+.player.standby { visibility: hidden; pointer-events: none; animation: none; }
 
 /* The video starts filling the window, then shrinks to leave room below it. */
 .video-wrap {
