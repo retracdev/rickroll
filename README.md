@@ -25,7 +25,7 @@ Or, you can [fork this repository](https://github.com/retracdev/rickroll/fork) a
 
 ## License
 
-This project is licensed under the PolyForm Noncommercial License 1.0.0. See [LICENSE](LICENSE) for details.
+This project is licensed under the PolyForm Noncommercial License 1.0.0. See [LICENSE](LICENSE.md) for details.
 
 You are welcome to use, modify, and share this project. However, you must use this project for noncommercial purposes. Commercial usage is not tolerated without explicit permission.
 
