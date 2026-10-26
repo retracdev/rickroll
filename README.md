@@ -2,7 +2,7 @@
 
 **An open-source Rickroll that's never gonna give you up.**
 
-Have you ever wanted to Rickroll your friends in a special way? Well, now's your chance!
+Ever wanted to Rickroll your friends in a special way? Well, now's your chance!
 
 **Retrac's Rickroll** takes the classic internet prank to another level with creative, unexpected, and entertaining ways to Rickroll just about anyone.
 
@@ -19,7 +19,9 @@ Whether you're looking for a traditional Rickroll or something a little more ela
 
 Got an idea for a new Rickroll? We'd love to see it!
 
-Retrac's Rickroll is open source, and contributions are welcome. Whether you're fixing a bug, improving an existing variation, or creating an entirely new way to Rickroll someone, feel free to open an issue or submit a pull request.
+Retrac's Rickroll is open-source. No matter if you are fixing a bug, creating a new variation, or adding another feature, just create a PR and I'll check it out!
+
+Or, you can fork this repository and edit it yourself!
 
 ## License
 
