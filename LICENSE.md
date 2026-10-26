@@ -2,7 +2,9 @@
 
 <https://polyformproject.org/licenses/noncommercial/1.0.0>
 
-Required Notice: Copyright 2026 Carter Welch
+Required Notice: Copyright (c) 2026 Carter Welch
+
+
 Required Notice: Original project: https://github.com/retracdev/rickroll
 
 ## Acceptance
