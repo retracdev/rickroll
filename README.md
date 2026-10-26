@@ -6,7 +6,7 @@ Ever wanted to Rickroll your friends in a special way? Well, now's your chance!
 
 **Retrac's Rickroll** takes the classic internet prank to another level with creative, unexpected, and entertaining ways to Rickroll just about anyone.
 
-Whether you're looking for a traditional Rickroll or something a little more elaborate, we've got you covered.
+This site has a traditional rickroll experience, with some tricks up its sleeve.
 
 ## Features
 
