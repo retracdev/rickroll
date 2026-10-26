@@ -21,7 +21,7 @@ Got an idea for a new Rickroll? We'd love to see it!
 
 Retrac's Rickroll is open-source. No matter if you are fixing a bug, creating a new variation, or adding another feature, just create a PR and I'll check it out!
 
-Or, you can fork this repository and edit it yourself!
+Or, you can [fork this repository](https://github.com/retracdev/rickroll/fork) and edit it yourself!
 
 ## License
 
